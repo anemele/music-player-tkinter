@@ -1,5 +1,5 @@
 """
-20201216
+20201228
 """
 import json
 import os
@@ -50,12 +50,13 @@ class MusicPlayer(tk.Tk):
                               fg='red')
         self.label = tk.Label(self.decoration,
                               text='Please select a music.',
-                              font=('华文楷书', 10),
+                              font=('华文行楷', 10),
                               fg='blue')
         self.music_title = tk.Label(self.show_music,
                                     text='歌名',
-                                    width=80,  # 保持lyric_listbox不变形
-                                    font=('华文楷书', 10))
+                                    width=80,  # 保持 lyric_listbox 不变形
+                                    font=('华文仿宋', 10),
+                                    fg='#800080')
         # Listbox
         self.music_listbox = tk.Listbox(self.choices,
                                         width=42,
@@ -79,6 +80,14 @@ class MusicPlayer(tk.Tk):
         self.remove_music_button = ttk.Button(self.buttons,
                                               text='删 除',
                                               width=5)
+        self.play_mode_box = ttk.Combobox(self.buttons,
+                                          width=7,
+                                          state=tk.DISABLED  # 'readonly'
+                                          )
+        self.pause_button = ttk.Button(self.buttons,
+                                       text='暂 停',
+                                       width=5,
+                                       state=tk.DISABLED)
         # Scale
         self.set_time_scale = tk.Scale(self.buttons,
                                        label='播放进度（禁用）',
@@ -86,7 +95,8 @@ class MusicPlayer(tk.Tk):
                                        width=5, length=360,
                                        orient=tk.HORIZONTAL,
                                        sliderlength=10,
-                                       digits=False
+                                       digits=False,
+                                       state=tk.DISABLED
                                        )
         self.set_volume_scale = ttk.Scale(self.buttons)
 
@@ -118,7 +128,7 @@ class MusicPlayer(tk.Tk):
         # Frame
         self.choices.place(x=30, y=70)
         self.show_music.place(x=380, y=100)
-        self.buttons.place(x=200, y=500)
+        self.buttons.place(x=100, y=500)
         self.decoration.place(x=120, y=10)
         self.short_info.place(x=400, y=100)
         # Label
@@ -136,8 +146,10 @@ class MusicPlayer(tk.Tk):
         # Button
         self.add_music_button.grid(row=0, column=0, padx=5, pady=5)
         self.remove_music_button.grid(row=0, column=1, padx=5, pady=5)
-        self.set_time_scale.grid(row=0, column=2, padx=5, pady=5)
-        self.set_volume_scale.grid(row=0, column=3, padx=5, pady=5)
+        self.play_mode_box.grid(row=0, column=2, padx=5)
+        self.pause_button.grid(row=0, column=3, padx=5)
+        self.set_time_scale.grid(row=0, column=4, padx=5, pady=5)
+        self.set_volume_scale.grid(row=0, column=5, padx=5, pady=5)
 
     def config_gui(self):
         self.music_listbox.bind(
@@ -152,6 +164,8 @@ class MusicPlayer(tk.Tk):
                                   yscrollcommand=self.llb_y_scrollbar.set)
         self.add_music_button.config(command=lambda: self.add_music(fdl.askdirectory(initialdir=self.path)))
         self.remove_music_button.config(command=self.remove_music)
+        self.play_mode_box.config(values=('顺序播放', '循环播放', '单曲循环', '随机播放'))
+        self.play_mode_box.current(0)
         self.set_volume_scale.config(command=self.set_volume)
 
     def load_music_list(self):
