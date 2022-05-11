@@ -1,11 +1,12 @@
 """
-20201206
+20201211
 """
 
 import os
 import time
 import tkinter as tk
 from concurrent.futures import ThreadPoolExecutor
+from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 
 import pygame
@@ -19,6 +20,7 @@ class MusicPlayer(tk.Tk):
         self.path = path
 
         super(MusicPlayer, self).__init__()
+        self.protocol('WM_DELETE_WINDOW', self.exit)
 
         self.playing = False
         self.types = ('.mp3', '.flac')  # 支持的音乐格式
@@ -31,13 +33,32 @@ class MusicPlayer(tk.Tk):
         self.iconbitmap('music.ico')  # 转换为ico格式才可以作图标，方法见文末
         self.resizable(False, False)
 
+        # Frame
         self.choices = tk.LabelFrame(self)
         self.lyrics = tk.LabelFrame(self)
         self.buttons = tk.LabelFrame(self)
         self.decoration = tk.LabelFrame(self)
         self.short_info = tk.Frame(self)
 
+        # Label
         self.info = tk.Label(self.choices)
+        self.hello = tk.Label(self.decoration,
+                              text='Hello world!',
+                              font=('华文隶书', 16),
+                              fg='red')
+        self.label = tk.Label(self.decoration,
+                              text='Please select a music.',
+                              font=('华文楷书', 10),
+                              fg='blue')
+        self.music_title = tk.Label(self.short_info,
+                                    text='歌名',
+                                    width=80,
+                                    font=('华文楷书', 10))
+        self.lyric_line = tk.Label(self.short_info,
+                                   text='歌词',
+                                   font=('华文楷书', 10),
+                                   fg='green')
+        # Listbox
         self.music_listbox = tk.Listbox(self.choices,
                                         width=42,
                                         height=25,
@@ -47,31 +68,17 @@ class MusicPlayer(tk.Tk):
         self.mlb_x_scrollbar = tk.Scrollbar(self.choices,
                                             orient=tk.HORIZONTAL,
                                             command=self.music_listbox.xview)
-
-        self.music_title = tk.Label(self.short_info,
-                                    text='歌名',
-                                    width=80,
-                                    font=('华文楷书', 10))
-        self.lyric_line = tk.Label(self.short_info,
-                                   text='歌词',
-                                   font=('华文楷书', 10),
-                                   fg='green')
+        # ScrolledText
         self.lyric = ScrolledText(self.lyrics)
-        self.hello = tk.Label(self.decoration,
-                              text='Hello world!',
-                              font=('华文隶书', 16),
-                              fg='red')
-        self.label = tk.Label(self.decoration,
-                              text='Please select a music.',
-                              font=('华文楷书', 10),
-                              fg='blue')
+        # Button
         self.prev_music = tk.Button(self.buttons, text='上一首')
         self.pause_button = tk.Button(self.buttons,
                                       text='暂 停',
                                       # state='disabled',
-                                      command=self.pause,
                                       fg='green')
         self.next_music = tk.Button(self.buttons, text='下一首')
+        # Scale
+        self.set_volume_scale = ttk.Scale(self.buttons)
 
         self.set_gui()
         self.config_gui()
@@ -82,6 +89,11 @@ class MusicPlayer(tk.Tk):
 
     def run(self):
         self.mainloop()
+
+    def exit(self):
+        pygame.mixer.music.stop()
+        self.thread_pool.shutdown()
+        self.destroy()
 
     def set_gui(self):
         # Frame
@@ -100,12 +112,13 @@ class MusicPlayer(tk.Tk):
         self.mlb_y_scrollbar.pack(side=tk.RIGHT, fill=tk.BOTH)
         self.mlb_x_scrollbar.pack(side=tk.BOTTOM, fill=tk.BOTH)
         self.music_listbox.pack()  # 务必放在scrollbar末尾
-        # Scroll-text
+        # ScrolledText
         self.lyric.pack()
         # Button
         self.prev_music.grid(row=0, column=0)
         self.pause_button.grid(row=0, column=1, padx=5)
         self.next_music.grid(row=0, column=2)
+        self.set_volume_scale.grid(row=1, columnspan=3)
 
     def config_gui(self):
         self.music_listbox.bind(
@@ -116,6 +129,8 @@ class MusicPlayer(tk.Tk):
         # 与Listbox联动
         self.music_listbox.config(xscrollcommand=self.mlb_x_scrollbar.set,
                                   yscrollcommand=self.mlb_y_scrollbar.set)
+        self.pause_button.config(command=self.pause)
+        self.set_volume_scale.config(command=lambda value: pygame.mixer.music.set_volume(float(value)))
 
     def add_music(self):
         for t, ds, fs in os.walk(self.path):
