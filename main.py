@@ -1,5 +1,5 @@
 """
-20201212
+20201216
 """
 import json
 import os
@@ -9,7 +9,6 @@ from concurrent.futures import ThreadPoolExecutor
 from tkinter import filedialog as fdl
 from tkinter import messagebox as mb
 from tkinter import ttk
-from tkinter.scrolledtext import ScrolledText
 
 import pygame
 
@@ -38,13 +37,13 @@ class MusicPlayer(tk.Tk):
 
         # Frame
         self.choices = tk.LabelFrame(self)
-        self.lyrics = tk.LabelFrame(self)
+        self.show_music = tk.LabelFrame(self)
         self.buttons = tk.LabelFrame(self)
         self.decoration = tk.LabelFrame(self)
         self.short_info = tk.Frame(self)
 
         # Label
-        self.info = tk.Label(self.choices)
+        self.info = tk.Label(self.choices, text='正在加载...')
         self.hello = tk.Label(self.decoration,
                               text='Hello world!',
                               font=('华文隶书', 16),
@@ -53,26 +52,26 @@ class MusicPlayer(tk.Tk):
                               text='Please select a music.',
                               font=('华文楷书', 10),
                               fg='blue')
-        self.music_title = tk.Label(self.short_info,
+        self.music_title = tk.Label(self.show_music,
                                     text='歌名',
-                                    width=80,
+                                    width=80,  # 保持lyric_listbox不变形
                                     font=('华文楷书', 10))
-        self.lyric_line = tk.Label(self.short_info,
-                                   text='歌词',
-                                   font=('华文楷书', 10),
-                                   fg='green')
         # Listbox
         self.music_listbox = tk.Listbox(self.choices,
                                         width=42,
-                                        height=25,
-                                        selectmode=tk.SINGLE)
+                                        height=20,
+                                        selectmode=tk.EXTENDED)
         self.mlb_y_scrollbar = tk.Scrollbar(self.choices,
                                             command=self.music_listbox.yview)
         self.mlb_x_scrollbar = tk.Scrollbar(self.choices,
                                             orient=tk.HORIZONTAL,
                                             command=self.music_listbox.xview)
-        # ScrolledText
-        self.lyric = ScrolledText(self.lyrics)
+        self.lyric_listbox = tk.Listbox(self.show_music, width=80, height=16)
+        self.llb_y_scrollbar = tk.Scrollbar(self.show_music,
+                                            command=self.lyric_listbox.yview)
+        self.llb_x_scrollbar = tk.Scrollbar(self.show_music,
+                                            orient=tk.HORIZONTAL,
+                                            command=self.lyric_listbox.xview)
         # Button
         self.add_music_button = tk.Button(self.buttons,
                                           text='添 加'
@@ -80,13 +79,15 @@ class MusicPlayer(tk.Tk):
         self.remove_music_button = tk.Button(self.buttons,
                                              text='删 除'
                                              )
-        self.prev_music = tk.Button(self.buttons, text='上一首')
-        self.pause_button = tk.Button(self.buttons,
-                                      text='暂 停',
-                                      # state='disabled',
-                                      fg='green')
-        self.next_music = tk.Button(self.buttons, text='下一首')
         # Scale
+        self.set_time_scale = tk.Scale(self.buttons,
+                                       label='播放进度（禁用）',
+                                       from_=0, to=100,
+                                       width=5, length=360,
+                                       orient=tk.HORIZONTAL,
+                                       sliderlength=10,
+                                       digits=False
+                                       )
         self.set_volume_scale = ttk.Scale(self.buttons)
 
         self.set_gui()
@@ -115,30 +116,28 @@ class MusicPlayer(tk.Tk):
 
     def set_gui(self):
         # Frame
-        self.choices.place(x=30, y=30)
-        self.lyrics.place(x=400, y=150)
-        self.buttons.place(x=640, y=500)
-        self.decoration.place(x=620, y=30)
+        self.choices.place(x=30, y=70)
+        self.show_music.place(x=380, y=100)
+        self.buttons.place(x=200, y=500)
+        self.decoration.place(x=120, y=10)
         self.short_info.place(x=400, y=100)
         # Label
         self.info.pack()
         self.hello.pack()
         self.label.pack()
         self.music_title.pack()
-        self.lyric_line.pack()
         # Listbox
         self.mlb_y_scrollbar.pack(side=tk.RIGHT, fill=tk.BOTH)
         self.mlb_x_scrollbar.pack(side=tk.BOTTOM, fill=tk.BOTH)
         self.music_listbox.pack()  # 务必放在scrollbar末尾
-        # ScrolledText
-        self.lyric.pack()
+        self.llb_y_scrollbar.pack(side=tk.RIGHT, fill=tk.BOTH)
+        self.llb_x_scrollbar.pack(side=tk.BOTTOM, fill=tk.BOTH)
+        self.lyric_listbox.pack()
         # Button
-        self.add_music_button.grid(row=0, column=0, padx=10, pady=5)
-        self.remove_music_button.grid(row=1, column=0, padx=10, pady=5)
-        self.prev_music.grid(row=0, column=1, padx=5)
-        self.pause_button.grid(row=0, column=2)
-        self.next_music.grid(row=0, column=3, padx=5)
-        self.set_volume_scale.grid(row=1, column=1, columnspan=3)
+        self.add_music_button.grid(row=0, column=0, padx=5, pady=5)
+        self.remove_music_button.grid(row=0, column=1, padx=5, pady=5)
+        self.set_time_scale.grid(row=0, column=2, padx=5, pady=5)
+        self.set_volume_scale.grid(row=0, column=3, padx=5, pady=5)
 
     def config_gui(self):
         self.music_listbox.bind(
@@ -149,9 +148,10 @@ class MusicPlayer(tk.Tk):
         # 与Listbox联动
         self.music_listbox.config(xscrollcommand=self.mlb_x_scrollbar.set,
                                   yscrollcommand=self.mlb_y_scrollbar.set)
+        self.lyric_listbox.config(xscrollcommand=self.llb_x_scrollbar.set,
+                                  yscrollcommand=self.llb_y_scrollbar.set)
         self.add_music_button.config(command=lambda: self.add_music(fdl.askdirectory(initialdir=self.path)))
         self.remove_music_button.config(command=self.remove_music)
-        self.pause_button.config(command=self.pause)
         self.set_volume_scale.config(command=self.set_volume)
 
     def load_music_list(self):
@@ -188,11 +188,9 @@ class MusicPlayer(tk.Tk):
         if pygame.mixer.music.get_busy() and self.playing:
             pygame.mixer.music.pause()
             self.playing = False
-            self.pause_button.config(text='播 放')
         else:
             pygame.mixer.music.unpause()
             self.playing = True
-            self.pause_button.config(text='暂 停')
 
     def play(self, music):
         if not os.path.exists(music):
@@ -201,7 +199,6 @@ class MusicPlayer(tk.Tk):
         pygame.mixer.music.load(music)
         pygame.mixer.music.play()
         self.playing = True
-        self.pause_button.config(text='暂 停')
 
     @staticmethod
     def set_volume(value):
@@ -211,28 +208,33 @@ class MusicPlayer(tk.Tk):
         index = self.music_listbox.curselection()
         if bool(index):
             path = self.music_list[index[0]]
-            self.music_title.config(text=os.path.basename(path))
-            self.thread_pool.submit(self.play, path)
-            self.thread_pool.submit(self.load_lyric, path)
+            # 判断列表音乐是否存在
+            if os.path.exists(path):
+                self.music_title.config(text=os.path.basename(path))
+                self.thread_pool.submit(self.play, path)
+                self.thread_pool.submit(self.load_lyric, path)
+            else:
+                if mb.askyesno('无效文件', '是否删除？'):
+                    self.remove_music()
 
-    def set_lyric(self, lyric_text):
-        self.lyric.config(state=tk.NORMAL)
-        self.lyric.delete('1.0', tk.END)  # 清空内容
-        self.lyric.insert(tk.END, lyric_text)  # 插入新内容
-        self.lyric.config(state=tk.DISABLED)
+    def set_lyric(self, lyric_list):
+        self.lyric_listbox.delete(0, tk.END)  # 清空内容
+        self.lyric_listbox.insert(tk.END, *lyric_list)  # 插入新内容
 
     def reset_lyric(self):
-        self.set_lyric('暂无歌词')
-        self.lyric_line.config(text='暂无歌词')
+        self.set_lyric(('暂无歌词',))
 
-    def active_lyric(self, lyric_lines):
+    def active_lyric(self, index, max_len, start_perf, timer):
         # 每隔一段时间，更新歌词框
-        times = tuple(lyric_lines)
-        time.sleep(times[0])
-        self.lyric_line.config(text=lyric_lines[times[0]])
-        for index in range(1, len(times)):
-            time.sleep(times[index] - times[index - 1])
-            self.lyric_line.config(text=lyric_lines[times[index]])
+        if index >= max_len:
+            return
+        if abs(time.perf_counter() - start_perf - timer[index]) > 5e-2:
+            self.after(10, lambda: self.active_lyric(index, max_len, start_perf, timer))
+            return
+        self.lyric_listbox.see(index + 1)  # 正在播放歌词
+        self.lyric_listbox.itemconfig(index, fg='black', bg='white')
+        self.lyric_listbox.itemconfig(index + 1, fg='green', bg='silver')
+        self.after(20, lambda: self.active_lyric(index + 1, max_len, start_perf, timer))
 
     def read_file(self, path):
         # 自动选择编码格式
@@ -250,15 +252,17 @@ class MusicPlayer(tk.Tk):
             if lyric_text is None:
                 self.reset_lyric()
                 return
-            lyric_lines = dict()
+            timer = []
+            lyric_lines = ['']
             for line in lyric_text.strip().split('\n'):
                 times, lyric = line.split(']')
                 m, s = times[1:].split(':')
                 if not m.isdigit():  # 过滤非时间点
                     continue
-                lyric_lines[int(m) * 60 + float(s)] = lyric
-            self.set_lyric('\n'.join(lyric_lines.values()))
-            self.active_lyric(lyric_lines, )
+                timer.append(int(m) * 60 + float(s))
+                lyric_lines.append(lyric)
+            self.set_lyric(lyric_lines)
+            self.active_lyric(0, len(timer), time.perf_counter(), timer)
         else:
             self.reset_lyric()
 
