@@ -73,12 +73,12 @@ class MusicPlayer(tk.Tk):
                                             orient=tk.HORIZONTAL,
                                             command=self.lyric_listbox.xview)
         # Button
-        self.add_music_button = tk.Button(self.buttons,
-                                          text='添 加'
-                                          )
-        self.remove_music_button = tk.Button(self.buttons,
-                                             text='删 除'
-                                             )
+        self.add_music_button = ttk.Button(self.buttons,
+                                           text='添 加',
+                                           width=5)
+        self.remove_music_button = ttk.Button(self.buttons,
+                                              text='删 除',
+                                              width=5)
         # Scale
         self.set_time_scale = tk.Scale(self.buttons,
                                        label='播放进度（禁用）',
