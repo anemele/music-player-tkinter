@@ -1,39 +1,6 @@
-*该项目是 2020 年末写的，当时不会使用 git 工具，每个版本都写一个文件，很混乱。*
+# Music Player
 
-*现在修正格式，使用 git 工具归档。*
+> @Author Jason Swift
+> @Email anemele@foxmail.com
 
-## v1.5.0
-
-- 添加一些未实现功能的按钮
-- 微调部分样式
-- 不再维护
-
-*当前的技术框架是 tkinter 写 GUI，pygame 操作音频，threading 控制线程，比较落后；如果继续项目，建议更换为 qt + ffmpeg*
-
-## v1.4.0
-
-- 修改 GUI 样式
-- 删除无用控件
-- 歌词显示方式从单行到滚屏聚焦
-
-*词曲不同步 bug 依然存在*
-
-## v1.3.0
-
-- 新增播放列表
-- 新增自主添加、删除歌曲
-- 优化声音调节
-
-*仍然是 v1.1.0 存在的 bug：歌词显示与歌曲播放是独立线程，切歌或者暂停词曲不同步*
-
-## v1.2.0
-
-- 优化代码结构
-- 新增调节声音
-
-*v1.1.0 存在歌词与音乐不同步问题：音乐暂停，歌词继续滚动*
-
-## v1.1.0
-
-- `Listbox` 代替 `Combobox`
-- 优化歌词显示
+A mini music player via Python, using tkinter for GUI, pygame for media.
