@@ -2,7 +2,6 @@ import json
 import os
 import pathlib
 import time
-import tkinter as tk
 from concurrent.futures import ThreadPoolExecutor
 from tkinter import messagebox, filedialog
 
@@ -12,7 +11,6 @@ from .gui import MainGUI
 
 
 class Player(MainGUI):
-
     def __init__(self, path):
         super().__init__()
         super(Player, self).config()
@@ -57,7 +55,8 @@ class Player(MainGUI):
             # "<ButtonRelease-1>",
             "<Double-Button-1>",  # 双击鼠标
             self.select)
-        self.buttons.add_music_button.config(command=lambda: self.add_music(filedialog.askdirectory(initialdir=self.path)))
+        self.buttons.add_music_button.config(command=lambda: self.add_music(
+            filedialog.askdirectory(initialdir=self.path)))
         self.buttons.remove_music_button.config(command=self.remove_music)
         self.buttons.play_mode_box.config(values=('顺序播放', '循环播放', '单曲循环', '随机播放'))
         self.buttons.play_mode_box.current(0)
@@ -68,7 +67,7 @@ class Player(MainGUI):
             try:
                 self.music_list = json.load(open(self.music_list_file, 'rb'))
                 for music in self.music_list:
-                    self.choices.music_listbox.insert(tk.END, os.path.basename(music))
+                    self.choices.insert_name(os.path.basename(music))
                 self.short_info.info.config(text=f"加载完毕！共有音频文件 {len(self.music_list)} 个。")
             except json.decoder.JSONDecodeError:
                 self.add_music(self.path)
@@ -79,7 +78,7 @@ class Player(MainGUI):
         if path is None:
             return
         count = 0
-        for t, ds, fs in os.walk(path):
+        for t, _, fs in os.walk(path):
             for file in fs:
                 if os.path.splitext(file)[1] in self.types:
                     self.music_list.append(os.path.join(t, file))
@@ -113,7 +112,7 @@ class Player(MainGUI):
     def set_volume(value):
         pygame.mixer.music.set_volume(float(value))
 
-    def select(self, event):
+    def select(self, _):
         index = self.choices.music_listbox.curselection()
         if bool(index):
             path = self.music_list[index[0]]
@@ -126,12 +125,8 @@ class Player(MainGUI):
                 if messagebox.askyesno('无效文件', '是否删除？'):
                     self.remove_music()
 
-    def set_lyric(self, lyric_list):
-        self.show_music.lyric_listbox.delete(0, tk.END)  # 清空内容
-        self.show_music.lyric_listbox.insert(tk.END, *lyric_list)  # 插入新内容
-
     def reset_lyric(self):
-        self.set_lyric(('暂无歌词',))
+        self.show_music.set_lyric(('暂无歌词',))
 
     def active_lyric(self, index, max_len, start_perf, timer):
         # 每隔一段时间，更新歌词框
@@ -170,7 +165,7 @@ class Player(MainGUI):
                     continue
                 timer.append(int(m) * 60 + float(s))
                 lyric_lines.append(lyric)
-            self.set_lyric(lyric_lines)
+            self.show_music.set_lyric(lyric_lines)
             self.active_lyric(0, len(timer), time.perf_counter(), timer)
         else:
             self.reset_lyric()

@@ -4,7 +4,6 @@ from tkinter import ttk
 
 
 class ChoiceFrame(tk.LabelFrame):
-
     def __init__(self, master, **kw):
         super(ChoiceFrame, self).__init__(master, **kw)
         self.info = tk.Label(self, text='正在加载...')
@@ -14,6 +13,9 @@ class ChoiceFrame(tk.LabelFrame):
 
         self.config_gui()
         self.layout_gui()
+
+    def insert_name(self, name):
+        self.music_listbox.insert(tk.END, name)
 
     def config_gui(self):
         self.music_listbox.config(xscrollcommand=self.mlb_x_scrollbar.set,
@@ -27,7 +29,6 @@ class ChoiceFrame(tk.LabelFrame):
 
 
 class DecorationFrame(tk.LabelFrame):
-
     def __init__(self, master, **kw):
         super(DecorationFrame, self).__init__(master, **kw)
 
@@ -42,7 +43,6 @@ class DecorationFrame(tk.LabelFrame):
 
 
 class ShowMusicFrame(tk.LabelFrame):
-
     def __init__(self, master, **kw):
         super(ShowMusicFrame, self).__init__(master, **kw)
 
@@ -58,6 +58,10 @@ class ShowMusicFrame(tk.LabelFrame):
         self.config_gui()
         self.layout_gui()
 
+    def set_lyric(self, lyric_list):
+        self.lyric_listbox.delete(0, tk.END)  # 清空内容
+        self.lyric_listbox.insert(tk.END, *lyric_list)  # 插入新内容
+
     def config_gui(self):
         # 与Listbox联动
         self.lyric_listbox.config(xscrollcommand=self.llb_x_scrollbar.set,
@@ -71,7 +75,6 @@ class ShowMusicFrame(tk.LabelFrame):
 
 
 class ButtonFrame(tk.LabelFrame):
-
     def __init__(self, master, **kw):
         super(ButtonFrame, self).__init__(master, **kw)
 
@@ -82,15 +85,13 @@ class ButtonFrame(tk.LabelFrame):
                                           )
         self.pause_button = ttk.Button(self, text='暂 停', width=5, state=tk.DISABLED)
 
-        self.set_time_scale = tk.Scale(self,
-                                       label='播放进度（禁用）',
-                                       from_=0, to=100,
-                                       width=5, length=360,
-                                       orient=tk.HORIZONTAL,
-                                       sliderlength=10,
-                                       digits=False,
-                                       state=tk.DISABLED
-                                       )
+        self.set_time_scale = tk.Scale(
+            self, label='播放进度（禁用）',
+            from_=0, to=100, width=5, length=360,
+            orient=tk.HORIZONTAL, sliderlength=10,
+            digits=False,
+            state=tk.DISABLED
+        )
         self.set_volume_scale = ttk.Scale(self)
 
         self.layout_gui()
@@ -105,7 +106,6 @@ class ButtonFrame(tk.LabelFrame):
 
 
 class MainGUI(tk.Tk):
-
     def __init__(self):
         super().__init__()
 
@@ -119,14 +119,11 @@ class MainGUI(tk.Tk):
         self.config_gui()
         self.layout_gui()
 
-    def run(self):
-        self.mainloop()
-
     def config_gui(self):
         self.geometry('1000x600+200+100')
         self.title('Music Player')
         icon = pathlib.Path(__file__).parent / 'music.ico'
-        self.iconbitmap(icon)  # 转换为ico格式才可以作图标，方法见文末
+        self.iconbitmap(icon)
         self.resizable(False, False)
 
     def layout_gui(self):
@@ -138,4 +135,4 @@ class MainGUI(tk.Tk):
 
 
 if __name__ == '__main__':
-    MainGUI().run()
+    MainGUI().mainloop()

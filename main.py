@@ -1,7 +1,5 @@
-#! python3.8
-from player import Player
+from player.player import Player
 
 
 if __name__ == '__main__':
-    player = Player('D:/Music')
-    player.run()
+    Player(r'D:\Music').mainloop()
