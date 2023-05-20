@@ -1,5 +1,5 @@
-/.idea/
-__pycache__/
-run.bat
-main.py
-*.json
+*
+!player/
+!.gitignore
+!README.md
+!requirements.txt
