@@ -12,12 +12,13 @@ from .gui import MainGUI
 
 class Player(MainGUI):
     def __init__(self, path):
-        super().__init__()
-        super(Player, self).config()
-
         if not os.path.exists(path):
             print(f'PathNotExistsError: {path}')
             return
+
+        super().__init__()
+        super(Player, self).config()
+
         self.path = path
 
         self.protocol('WM_DELETE_WINDOW', self.exit)
@@ -54,9 +55,13 @@ class Player(MainGUI):
             # "<<ListboxSelection>>",
             # "<ButtonRelease-1>",
             "<Double-Button-1>",  # 双击鼠标
-            self.select)
-        self.buttons.add_music_button.config(command=lambda: self.add_music(
-            filedialog.askdirectory(initialdir=self.path)))
+            self.select,
+        )
+        self.buttons.add_music_button.config(
+            command=lambda: self.add_music(
+                filedialog.askdirectory(initialdir=self.path)
+            )
+        )
         self.buttons.remove_music_button.config(command=self.remove_music)
         self.buttons.play_mode_box.config(values=('顺序播放', '循环播放', '单曲循环', '随机播放'))
         self.buttons.play_mode_box.current(0)
@@ -68,7 +73,9 @@ class Player(MainGUI):
                 self.music_list = json.load(open(self.music_list_file, 'rb'))
                 for music in self.music_list:
                     self.choices.insert_name(os.path.basename(music))
-                self.short_info.info.config(text=f"加载完毕！共有音频文件 {len(self.music_list)} 个。")
+                self.short_info.info.config(
+                    text=f"加载完毕！共有音频文件 {len(self.music_list)} 个。"
+                )
             except json.decoder.JSONDecodeError:
                 self.add_music(self.path)
         else:
@@ -114,16 +121,16 @@ class Player(MainGUI):
 
     def select(self, _):
         index = self.choices.music_listbox.curselection()
-        if bool(index):
-            path = self.music_list[index[0]]
-            # 判断列表音乐是否存在
-            if os.path.exists(path):
-                self.show_music.music_title.config(text=pathlib.Path(path).name)
-                self.thread_pool.submit(self.play, path)
-                self.thread_pool.submit(self.load_lyric, path)
-            else:
-                if messagebox.askyesno('无效文件', '是否删除？'):
-                    self.remove_music()
+        if not index:
+            return
+        path = self.music_list[index[0]]
+        # 判断列表音乐是否存在
+        if os.path.exists(path):
+            self.show_music.music_title.config(text=pathlib.Path(path).name)
+            self.thread_pool.submit(self.play, path)
+            self.thread_pool.submit(self.load_lyric, path)
+        elif messagebox.askyesno('无效文件', '是否删除？'):
+            self.remove_music()
 
     def reset_lyric(self):
         self.show_music.set_lyric(('暂无歌词',))
@@ -150,8 +157,17 @@ class Player(MainGUI):
                 pass
 
     def load_lyric(self, path):
-        lyric_path = '%s.lrc' % os.path.splitext(path)[0]
-        if os.path.exists(lyric_path):
+        path = pathlib.Path(path)
+
+        lyric_path_list = [
+            path.with_suffix('lrc'),
+            path.parent / 'lyric' / f'{path.stem}.lrc',
+        ]
+
+        for lyric_path in lyric_path_list:
+            print(lyric_path)
+            if not os.path.exists(lyric_path):
+                continue
             lyric_text = self.read_file(lyric_path)
             if lyric_text is None:
                 self.reset_lyric()
@@ -167,5 +183,6 @@ class Player(MainGUI):
                 lyric_lines.append(lyric)
             self.show_music.set_lyric(lyric_lines)
             self.active_lyric(0, len(timer), time.perf_counter(), timer)
+            break
         else:
             self.reset_lyric()
