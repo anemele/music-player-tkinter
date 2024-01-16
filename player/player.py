@@ -3,7 +3,7 @@ import os
 import pathlib
 import time
 from concurrent.futures import ThreadPoolExecutor
-from tkinter import messagebox, filedialog
+from tkinter import filedialog, messagebox
 
 import pygame
 
@@ -58,9 +58,7 @@ class Player(MainGUI):
             self.select,
         )
         self.buttons.add_music_button.config(
-            command=lambda: self.add_music(
-                filedialog.askdirectory(initialdir=self.path)
-            )
+            command=lambda: self.add_music(filedialog.askdirectory(initialdir=self.path))
         )
         self.buttons.remove_music_button.config(command=self.remove_music)
         self.buttons.play_mode_box.config(values=('顺序播放', '循环播放', '单曲循环', '随机播放'))

@@ -1,6 +1,2 @@
-*
-__pycache__
-!player/
-!.gitignore
-!README.md
-!requirements.txt
+__pycache__/
+/*.json
